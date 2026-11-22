@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12312f">
+<meta name="mobile-web-app-capable" content="yes">
+<title>SIG Kelas — Media Pembelajaran Geografi</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="logo-dot"></span><b>SIG Kelas</b><small>Media pembelajaran geografi</small></div>
+  <div class="viewtabs" id="viewtabs">
+    <button data-view="map" class="on">🗺️ Peta</button>
+    <button data-view="layout">🖨️ Layout<span class="lg"> &amp; Ekspor</span></button>
+  </div>
+  <button id="btn-menu" class="only-mobile" aria-label="Menu lainnya">⋯</button>
+  <div class="top-actions" id="top-actions">
+    <button id="btn-undo" title="Urungkan (Ctrl+Z)">↶ Undo</button>
+    <button id="btn-save-project">💾 Simpan Proyek</button>
+    <label class="btn">📂 Buka Proyek<input type="file" id="file-project" accept=".json,application/json" hidden></label>
+    <button id="btn-reset" class="danger">Reset</button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ============ PANEL KIRI: PERKAKAS ============ -->
+  <aside class="side left">
+    <nav class="tabs" id="tabs">
+      <button data-tab="data" class="on"><i>📁</i>Data</button>
+      <button data-tab="georef"><i>📍</i>Georef</button>
+      <button data-tab="grid"><i>🌐</i>Grid</button>
+      <button data-tab="digitize"><i>✏️</i>Digitasi</button>
+      <button data-tab="layout"><i>🧭</i>Layout</button>
+      <button data-tab="export"><i>⬇️</i>Ekspor</button>
+      <button data-tab="layers" class="only-mobile"><i>🗂️</i>Layer</button>
+    </nav>
+
+    <div class="tabpanes">
+
+      <!-- 1. DATA -->
+      <section class="pane on" data-pane="data">
+        <h3>1 · Impor peta raster</h3>
+        <label class="drop" id="drop">
+          <input type="file" id="file-raster" accept=".png,.jpg,.jpeg,.tif,.tiff,image/png,image/jpeg,image/tiff" hidden>
+          <b>Klik untuk memilih gambar peta</b><br>atau seret &amp; lepas file ke jendela ini<br>
+          <small>PNG · JPG · GeoTIFF sederhana</small>
+        </label>
+        <div id="raster-info" class="note"></div>
+        <div class="row">
+          <button id="btn-sample">Muat peta contoh</button>
+          <button id="btn-raster-clear" class="danger">Hapus raster</button>
+        </div>
+        <p class="hint">Peta contoh (Indonesia, ilustrasi kasar) sudah dilengkapi titik referensi sehingga garis astronomis langsung bisa dicoba. Hapus titik referensinya di tab <b>Georef</b> bila ingin siswa berlatih memasukkan koordinat sendiri.</p>
+        <h3>Alur kerja</h3>
+        <ol class="steps">
+          <li><b>Data</b> – impor gambar peta.</li>
+          <li><b>Georef</b> – beri koordinat pada minimal 2 titik.</li>
+          <li><b>Grid</b> – atur interval garis lintang &amp; bujur.</li>
+          <li><b>Digitasi</b> – gambar titik, garis, poligon.</li>
+          <li><b>Layout</b> – judul, legenda, skala, logo, bingkai.</li>
+          <li><b>Ekspor</b> – unduh PNG / JPEG / PDF.</li>
+        </ol>
+      </section>
+
+      <!-- 2. GEOREF -->
+      <section class="pane" data-pane="georef">
+        <h3>2 · Georeferensi sederhana</h3>
+        <p class="hint">Klik titik yang koordinatnya diketahui pada peta (mis. perpotongan garis lintang–bujur di tepi peta), lalu isi Lintang &amp; Bujurnya. <b>2 titik</b> = peta menghadap utara. <b>≥3 titik</b> = transformasi affine (boleh miring).</p>
+        <button id="btn-add-gcp" class="primary wide">＋ Tambah titik referensi (klik di peta)</button>
+        <div id="gcp-list"></div>
+        <div id="georef-status" class="status"></div>
+        <p class="hint">Format yang diterima: <code>-6.2</code> · <code>6.2 S</code> · <code>6°12'30" LS</code> · <code>106 49 BT</code> · <code>95,5 E</code>.<br>Hemisfer: LU/N, LS/S, BT/E, BB/W. Asumsi proyeksi: equirectangular (plate carrée) — cocok untuk peta dunia/regional sederhana.</p>
+        <label class="check"><input type="checkbox" id="chk-show-gcps"> Tampilkan penanda titik referensi di peta</label>
+      </section>
+
+      <!-- 3. GRID -->
+      <section class="pane" data-pane="grid">
+        <h3>3 · Garis astronomis</h3>
+        <label class="check big"><input type="checkbox" id="grid-visible"> Tampilkan garis lintang &amp; bujur</label>
+        <div id="grid-warn" class="warn" hidden>Georeferensi belum aktif — selesaikan di tab Georef agar garis muncul.</div>
+        <div class="grid2">
+          <label>Interval lintang<input type="number" id="grid-latInt" min="0.001" step="any"></label>
+          <label>Interval bujur<input type="number" id="grid-lonInt" min="0.001" step="any"></label>
+        </div>
+        <div class="grid2">
+          <label>Satuan
+            <select id="grid-unit"><option value="deg">derajat (°)</option><option value="min">menit (′)</option></select>
+          </label>
+          <label class="check inline"><input type="checkbox" id="grid-linked"> Samakan lintang = bujur</label>
+        </div>
+        <div class="chips" id="grid-presets">
+          <button data-v="0.5">0,5°</button><button data-v="1">1°</button><button data-v="2">2°</button>
+          <button data-v="5">5°</button><button data-v="10">10°</button><button data-v="15">15°</button><button data-v="30">30°</button>
+        </div>
+        <h4>Tampilan</h4>
+        <div class="grid2">
+          <label>Warna<input type="color" id="grid-color"></label>
+          <label>Tebal (px)<input type="number" id="grid-width" min="0.5" max="6" step="0.5"></label>
+        </div>
+        <div class="grid2">
+          <label>Gaya garis
+            <select id="grid-dash"><option value="dashed">putus-putus</option><option value="solid">penuh</option><option value="dotted">titik-titik</option></select>
+          </label>
+          <label>Format label
+            <select id="grid-format"><option value="dms">6°12′ LS</option><option value="dec">6,2° LS</option></select>
+          </label>
+        </div>
+        <div class="grid2">
+          <label class="check inline"><input type="checkbox" id="grid-labels"> Label koordinat</label>
+          <label>Ukuran label<input type="number" id="grid-labelSize" min="8" max="30" step="1"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="grid-emphasize"> Tebalkan garis 0° (khatulistiwa &amp; meridian nol)</label>
+      </section>
+
+      <!-- 4. DIGITASI -->
+      <section class="pane" data-pane="digitize">
+        <h3>4 · Digitasi di atas peta</h3>
+        <div class="modes">
+          <button class="mode-btn" data-mode="select"><span>✋</span>Pilih / Geser<kbd>V</kbd></button>
+          <button class="mode-btn" data-mode="point"><span>●</span>Titik<kbd>1</kbd></button>
+          <button class="mode-btn" data-mode="line"><span>╱</span>Garis<kbd>2</kbd></button>
+          <button class="mode-btn" data-mode="polygon"><span>⬠</span>Poligon<kbd>3</kbd></button>
+        </div>
+        <label>Simpan objek baru ke layer
+          <select id="active-layer"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="chk-labels"> Tampilkan nama objek pada peta</label>
+        <div class="row">
+          <button id="btn-undo2">↶ Undo</button>
+          <button id="btn-geojson">Ekspor GeoJSON</button>
+          <button id="btn-clear-features" class="danger">Hapus semua objek</button>
+        </div>
+        <h4>Cara pakai</h4>
+        <ul class="tips">
+          <li><b>Titik</b>: klik sekali.</li>
+          <li><b>Garis / Poligon</b>: klik tiap titik sudut; <b>klik dua kali</b>, klik kanan, atau <kbd>Enter</kbd> untuk selesai. <kbd>Backspace</kbd> hapus titik terakhir, <kbd>Esc</kbd> batal.</li>
+          <li><b>Pilih</b>: klik objek, isi nama &amp; keterangan di panel kanan; seret titik sudut untuk mengedit bentuk.</li>
+          <li>Seret kosong = geser peta · roda mouse / cubit = zoom · <kbd>Del</kbd> hapus objek terpilih.</li>
+        </ul>
+      </section>
+
+      <!-- 5. LAYOUT -->
+      <section class="pane" data-pane="layout">
+        <h3>5 · Desain layout peta</h3>
+        <p class="hint">Seret elemen langsung di pratinjau untuk memindahkannya. Seret bagian peta untuk menggeser isi, roda mouse untuk zoom.</p>
+        <div class="grid2">
+          <label>Ukuran kertas
+            <select id="layout-paper"><option>A4</option><option>A3</option><option>Letter</option></select>
+          </label>
+          <label>Orientasi
+            <select id="layout-orient"><option value="landscape">Lanskap</option><option value="portrait">Potret</option></select>
+          </label>
+        </div>
+
+        <details open><summary>Judul</summary>
+          <label class="check"><input type="checkbox" id="layout-showTitle"> Tampilkan judul</label>
+          <label>Judul peta<input type="text" id="layout-title"></label>
+          <label>Sub-judul<input type="text" id="layout-subtitle" placeholder="(opsional)"></label>
+          <div class="grid2">
+            <label>Ukuran huruf<input type="number" id="layout-titleSize" min="14" max="80"></label>
+            <label>Rata
+              <select id="layout-titleAlign"><option value="left">Kiri</option><option value="center">Tengah</option><option value="right">Kanan</option></select>
+            </label>
+          </div>
+        </details>
+
+        <details open><summary>Isi peta</summary>
+          <div class="mapsize">
+            <div class="ms-head"><span>Ukuran isi peta</span><b id="ms-pct">100%</b></div>
+            <div class="ms-row">
+              <button type="button" id="ms-out" title="Perkecil">−</button>
+              <input type="range" id="ms-slider" min="-3" max="4" step="0.02" value="0" aria-label="Ukuran isi peta">
+              <button type="button" id="ms-in" title="Perbesar">＋</button>
+            </div>
+            <div class="ms-scale" id="ms-scale">Skala: —</div>
+            <div class="ms-row">
+              <label class="ms-n">Atur skala&nbsp;1&nbsp;:<input type="number" id="ms-n" min="1" step="1000" placeholder="mis. 5000000"></label>
+              <button type="button" id="ms-apply">Terapkan</button>
+            </div>
+            <div class="ms-presets" id="ms-presets">
+              <button type="button" data-n="1000000">1:1 jt</button><button type="button" data-n="5000000">1:5 jt</button><button type="button" data-n="10000000">1:10 jt</button><button type="button" data-n="25000000">1:25 jt</button><button type="button" data-n="50000000">1:50 jt</button>
+            </div>
+            <div class="ms-hint">Skala dihitung otomatis dari georeferensi &amp; dianggap benar bila dicetak pada ukuran kertas 100%. Roda mouse di pratinjau juga memperbesar/memperkecil.</div>
+          </div>
+          <div class="row">
+            <button id="btn-view-fromMap">Ambil dari tampilan peta</button>
+            <button id="btn-view-fit">Seluruh gambar</button>
+          </div>
+          <label class="check"><input type="checkbox" id="layout-mapGrid"> Garis astronomis ikut tampil</label>
+          <label class="check"><input type="checkbox" id="layout-mapVectors"> Objek digitasi ikut tampil</label>
+          <label class="check"><input type="checkbox" id="layout-mapLabels"> Nama objek pada peta</label>
+        </details>
+
+        <details open><summary>Legenda, skala &amp; arah utara</summary>
+          <label class="check"><input type="checkbox" id="layout-legend-show"> Legenda otomatis</label>
+          <div class="grid2">
+            <label>Judul legenda<input type="text" id="layout-legend-title"></label>
+            <label>Isi
+              <select id="layout-legend-mode"><option value="feature">Per objek</option><option value="layer">Per layer</option></select>
+            </label>
+          </div>
+          <div class="grid2">
+            <label>Ukuran huruf<input type="number" id="layout-legend-size" min="8" max="30"></label>
+            <label>Posisi<select class="place" data-kind="legend"><option value="">pilih…</option><option value="tl">↖ kiri atas</option><option value="tr">↗ kanan atas</option><option value="bl">↙ kiri bawah</option><option value="br">↘ kanan bawah</option></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="layout-scale-show"> Skala peta (batang &amp; perkiraan 1 : n)</label>
+          <label>Posisi skala<select class="place" data-kind="scale"><option value="">pilih…</option><option value="tl">↖ kiri atas</option><option value="tr">↗ kanan atas</option><option value="bl">↙ kiri bawah</option><option value="br">↘ kanan bawah</option></select></label>
+          <label class="check"><input type="checkbox" id="layout-north-show"> Arah mata angin (utara)</label>
+          <div class="grid2">
+            <label>Ukuran<input type="number" id="layout-north-size" min="30" max="200" step="5"></label>
+            <label>Posisi<select class="place" data-kind="north"><option value="">pilih…</option><option value="tl">↖ kiri atas</option><option value="tr">↗ kanan atas</option><option value="bl">↙ kiri bawah</option><option value="br">↘ kanan bawah</option></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="layout-credit-show"> Teks pembuat / sumber</label>
+          <label>Teks<input type="text" id="layout-credit-text"></label>
+        </details>
+
+        <details open><summary>Logo sekolah / instansi</summary>
+          <label class="btn wide">🖼️ Unggah logo (PNG/JPG)<input type="file" id="file-logo" accept="image/png,image/jpeg" hidden></label>
+          <label class="check"><input type="checkbox" id="layout-logo-show"> Tampilkan logo</label>
+          <div class="grid2">
+            <label>Tinggi logo (px)<input type="number" id="layout-logo-h" min="20" max="300" step="4"></label>
+            <label>Posisi<select class="place" data-kind="logo"><option value="">pilih…</option><option value="tl">↖ kiri atas</option><option value="tr">↗ kanan atas</option><option value="bl">↙ kiri bawah</option><option value="br">↘ kanan bawah</option></select></label>
+          </div>
+          <button id="btn-logo-clear" class="wide">Hapus logo</button>
+        </details>
+
+        <details open><summary>Garis layout (bingkai &amp; dekoratif)</summary>
+          <label class="check"><input type="checkbox" id="layout-border-show"> Garis tepi / bingkai</label>
+          <div class="grid3">
+            <label>Gaya<select id="layout-border-style"><option value="single">tunggal</option><option value="double">ganda</option></select></label>
+            <label>Tebal<input type="number" id="layout-border-width" min="1" max="14"></label>
+            <label>Warna<input type="color" id="layout-border-color"></label>
+          </div>
+          <label>Jarak bingkai dari tepi kertas<input type="number" id="layout-margin" min="0" max="80"></label>
+          <label class="check"><input type="checkbox" id="layout-titleLine-show"> Garis pemisah judul</label>
+          <div class="grid2">
+            <label>Tebal<input type="number" id="layout-titleLine-width" min="1" max="10"></label>
+            <label>Warna<input type="color" id="layout-titleLine-color"></label>
+          </div>
+          <button id="btn-add-line" class="wide">＋ Tambah garis bebas (seret di layout)</button>
+          <div id="line-list"></div>
+        </details>
+      </section>
+
+      <!-- 6. EKSPOR -->
+      <section class="pane" data-pane="export">
+        <h3>6 · Ekspor peta</h3>
+        <label>Nama file<input type="text" id="export-name" value="peta-saya"></label>
+        <label>Resolusi
+          <select id="export-scale">
+            <option value="1">Standar (±96 dpi)</option>
+            <option value="2" selected>Tinggi (±192 dpi)</option>
+            <option value="3">Sangat tinggi (±288 dpi)</option>
+          </select>
+        </label>
+        <div class="stack">
+          <button class="primary wide" id="btn-export-png">⬇ Unduh PNG</button>
+          <button class="wide" id="btn-export-jpg">⬇ Unduh JPEG</button>
+          <button class="wide" id="btn-export-pdf">⬇ Unduh PDF</button>
+        </div>
+        <p class="hint">Hasil ekspor sama persis dengan pratinjau layout (judul, legenda, skala, arah utara, grid, logo, garis). PDF berukuran kertas sesuai pilihan (A4/A3/Letter) dan siap cetak.</p>
+        <div id="export-info" class="note"></div>
+      </section>
+
+    </div>
+  </aside>
+
+  <!-- ============ PANEL TENGAH: KANVAS ============ -->
+  <section class="stage">
+    <div class="stage-inner" id="map-stage">
+      <canvas id="map-canvas"></canvas>
+
+      <div class="float-modes" id="float-modes">
+        <button class="mode-btn" data-mode="select" title="Pilih / Geser (V)"><span>✋</span><em>Pilih</em></button>
+        <button class="mode-btn" data-mode="point" title="Titik (1)"><span>●</span><em>Titik</em></button>
+        <button class="mode-btn" data-mode="line" title="Garis (2)"><span>╱</span><em>Garis</em></button>
+        <button class="mode-btn" data-mode="polygon" title="Poligon (3)"><span>⬠</span><em>Poligon</em></button>
+      </div>
+      <div class="float-draft" id="float-draft" hidden>
+        <span id="draft-info"></span>
+        <button id="btn-draft-finish" class="primary">✔ Selesai</button>
+        <button id="btn-draft-cancel">✖ Batal</button>
+      </div>
+      <div class="float-zoom">
+        <button id="z-in" title="Perbesar">＋</button>
+        <button id="z-out" title="Perkecil">−</button>
+        <button id="z-fit" title="Pas ke layar (F)">⛶</button>
+      </div>
+      <button id="m-attr" class="m-attr" hidden>✎ Edit objek terpilih</button>
+      <div class="statusbar" id="status-coords">Muat peta untuk memulai.</div>
+      <div class="empty" id="map-empty">
+        <div>
+          <h2>Belum ada peta</h2>
+          <p>Impor gambar peta di tab <b>Data</b>, atau coba peta contoh.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-inner hidden" id="layout-stage">
+      <div class="layout-wrap" id="layout-wrap"><canvas id="layout-canvas"></canvas></div>
+      <div class="statusbar" id="layout-status">Seret elemen untuk memindahkan · seret peta untuk menggeser · cubit / roda mouse = zoom</div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL KANAN: LAYER & ATRIBUT ============ -->
+  <aside class="side right">
+    <div class="card">
+      <div class="card-head"><h3>Layer Manager</h3><button id="btn-add-layer" title="Tambah layer vektor">＋ Layer</button></div>
+      <div id="layer-list" class="layer-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Atribut objek</h3></div>
+      <div id="attr-panel"></div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="js/state.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/raster.js"></script>
+<script src="js/render.js"></script>
+<script src="js/symbols.js"></script>
+<script src="js/mapview.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/exporter.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/ads-config.js"></script>
+<script src="js/ads.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
