@@ -22,7 +22,7 @@ window.SIG_ADS = {
   inPagePush: { zone: '12328982', src: 'https://nap5k.com/tag.min.js' },       // In-Page Push    → saat ekspor peta
 
   /* Aturan agar tidak mengganggu aktivitas siswa */
-  minStartDelaySec: 120,   // vignette tidak muncul sebelum aplikasi dipakai selama ini (detik)
+  minStartDelaySec: 5,   // vignette tidak muncul sebelum aplikasi dipakai selama ini (detik)
   idleSec: 8,              // …dan hanya saat siswa diam (tidak menyentuh layar / mengetik) selama ini
   cooldownMin: 30,         // jeda minimal antar-sesi vignette (menit)
   pushCooldownSec: 90      // jeda minimal In-Page Push antar-ekspor (detik)
