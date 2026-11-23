@@ -14,7 +14,7 @@
    → src   = alamat pada s.src            (contoh 'https://contoh-domain.net/tag.min.js')
    Salin PERSIS seperti yang diberikan Monetag (domain skrip bisa berbeda tiap akun). */
 window.SIG_ADS = {
-  enabled: false,                          // ubah ke true setelah semuanya terisi
+  enabled: true,                          // ubah ke true setelah semuanya terisi
 
   allowedHosts: ['irfansani13-lab.github.io'],    // domain situs Anda yang sudah diverifikasi di Monetag
 
