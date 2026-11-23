@@ -16,10 +16,10 @@
 window.SIG_ADS = {
   enabled: false,                          // ubah ke true setelah semuanya terisi
 
-  allowedHosts: ['USERNAME.github.io'],    // domain situs Anda yang sudah diverifikasi di Monetag
+  allowedHosts: ['irfansani13-lab.github.io'],    // domain situs Anda yang sudah diverifikasi di Monetag
 
-  vignette:   { zone: '', src: '' },       // Vignette Banner → tab Data s.d. Digitasi
-  inPagePush: { zone: '', src: '' },       // In-Page Push    → saat ekspor peta
+  vignette:   { zone: '12328968', src: 'https://n6wxm.com/vignette.min.js' },       // Vignette Banner → tab Data s.d. Digitasi
+  inPagePush: { zone: '12328982', src: 'https://nap5k.com/tag.min.js' },       // In-Page Push    → saat ekspor peta
 
   /* Aturan agar tidak mengganggu aktivitas siswa */
   minStartDelaySec: 120,   // vignette tidak muncul sebelum aplikasi dipakai selama ini (detik)
